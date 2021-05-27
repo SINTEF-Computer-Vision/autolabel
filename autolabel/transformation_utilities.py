@@ -1,11 +1,36 @@
 import numpy as np
 
-#%% General transformation stuff
+#--- General transformation functionality
 '''
+Note: 
 Roll, pitch, yaw is rotation around x,y,z axis. 
 To combine rotation matrices, rotate in x,y,z order around x axis first: R=RzRyRx
-
 '''
+
+def set_up_camera_to_robot_transform(rpy = [0,0,0], xyz = [0,0,0]):
+    ''' 
+    Robot coordinates: x ahead, y left, z up
+    Camera coordinaes: x right, y down, z ahead
+    
+    Takes 6-DOF camera pose in robot (base) coordinates as input
+    rpy : roll-pitch-yaw angle, in radians
+    xyz : x,y,z position, in meters
+
+    Output: camera-to-robot transformation matrix
+    '''
+
+    # Rotation between coordinate systems. Creating a camera coordinate system 
+    # aligned with the robot coordinate system (x_robot = z_cam, y_robot = -x_cam, z_robot = -y_cam)
+    rx = np.pi/2
+    ry = 0
+    rz = np.pi/2
+    T_cam_to_camaligned = create_transformation_matrix(r = [rx,ry,rz],t = [0,0,0])
+    #Camera tilt and position compared to robot coordinate system
+    T_camaligned_to_rob = create_transformation_matrix(r = [rpy[0], rpy[1], -rpy[2]],t = xyz) #compensate for sign error
+    #Combine 
+    T_cam_to_rob = T_camaligned_to_rob.dot(T_cam_to_camaligned)
+    
+    return T_cam_to_rob
 
 def x_rotation_matrix(theta):
     Rx = np.array([
@@ -64,22 +89,3 @@ def camera_to_world_transform(T_camera_to_robot = np.eye(4), T_robot_to_world = 
 def set_up_robot_to_world_transform(rpy, xyz):
     return create_transformation_matrix(r=rpy, t=xyz)
         
-def set_up_camera_to_robot_transform(rpy = [0,0,0], xyz = [0,0,0]):
-    ''' 
-    Robot coordinates: x ahead, y left, z up
-    Camera coordinaes: x right, y down, z ahead
-    
-    inputs: camera pose in robot (base) coordinates
-    '''
-    # Rotation between coordinate systems. Creating a camera coordinate system 
-    # aligned with the robot coordinate system (x_robot = z_cam, y_robot = -x_cam, z_robot = -y_cam)
-
-    rx = np.pi/2
-    ry = 0
-    rz = np.pi/2
-    T_cam_to_camaligned = create_transformation_matrix(r = [rx,ry,rz],t = [0,0,0])
-    #Camera tilt and position compared to robot coordinate system
-    T_camaligned_to_rob = create_transformation_matrix(r = [rpy[0], rpy[1], -rpy[2]],t = xyz) #compensate for sign error
-    #Combine 
-    T_cam_to_rob = T_camaligned_to_rob.dot(T_cam_to_camaligned)
-    return T_cam_to_rob

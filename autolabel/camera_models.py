@@ -1,36 +1,24 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 15 10:50:15 2019
+Created on March 10 2020
 
-@author: marianne
+@author: Marianne Bakken
 
 Translated from C++ code by Richard Moore
+
+---
+Camera models for pixel-to-vector transformation
 
 """
 import os
 import numpy as np
 import xmltodict
-        
-
-# Utility functions
-def vec3_normalise(point):
-    norm = np.linalg.norm(point)
-    if norm == 0: 
-       return point
-    return point / norm
-
-#Evaluation of polynomials
-#cubic
-def eval_poly3(poly,x):
-    return ((poly[0]*x + poly[1])*x + poly[2])*x + poly[3]
-
-#quartic
-def eval_poly4(poly, x):
-    return (((poly[0]*x + poly[1])*x + poly[2])*x + poly[3])*x + poly[4]
+import math
 
 class OcamCalibCameraModel:
     '''
+    OcamCalib camera model for fisheye cameras
     '''
     def __init__(self,calib_file):
         param_dict = self.read_opencv_storage_from_file(calib_file)
@@ -135,91 +123,86 @@ class OcamCalibCameraModel:
                 break
         R = x    
         return R
-
-
-if __name__ == "__main__":
-    calib_file = os.path.join('/home/marianne/catkin_ws/src/vision-based-navigation-agri-fields/auto_nav/scripts/input_cam_model_campus_2018-08-31.xml')
-    ocam_obj = OcamCalibCameraModel(calib_file)
-    #vector to point debug
-    point = [0.1,0.1,1]
-    pixel = ocam_obj.vector_to_pixel(point)
-    print(pixel)
     
-#Original c++ code:
+class RectilinearCameraModel:
+    '''
+    Rectilinear camera model(compatible with Realsense)
+    '''
+    def __init__(self,calib_file):
+        '''
+        Load xml file with intrinsic calibration parameters
+        '''
+        param_dict = self.read_opencv_storage_from_file(calib_file)
+        self.set_params(param_dict)
 
-'''
-CmReal OcamCalibCameraModel::_alphaToR(CmReal alpha) const
+        #Derived parameters
+        self.focalLengthPixels = (self.height * 0.5) / math.tan(self.verticalFOV * 0.5)
+        R = self.focalLengthPixels * math.tan(self.imageCircleFOV * 0.5)
+        if (self.imageCircleFOV <= 0):
+            R = self.width + self.height; # allows everything
+        self.imageCircleR2 = R * R
 
-{
+    def set_params(self,opencv_storage_dict):
+        '''
+        Extract parameters from opencv storage dictionary object
+        '''
+        d = opencv_storage_dict
+        self.xc = float(d['centreX'])
+        self.yc = float(d['centreY'])
+        self.imageCircleFOV = float(d['imageCircleFOV'])
+        self.verticalFOV = float(d['verticalFOV'])
+        self.width = int(d['width'])
+        self.height = int(d['height'])
 
-                // Newton-Raphson search for the solution
+    def read_opencv_storage_from_file(self,calib_file):
+        with open(calib_file) as fd:
+            dict_ = xmltodict.parse(fd.read())
+            model_dict = dict_['opencv_storage']['cam_model']
+        return model_dict
 
-                CmReal newFx3 = _fx[3] - tan(alpha - CM_PI_2);
+    def vector_to_pixel(self, point):
+        '''
+        Go from vector (in camera coordinates) to pixel (image coordinates)
+        input: point (list) - x,y,z in camera frame
+        '''
+        s = self.focalLengthPixels / point[2]
+        dx = point[0] * s
+        dy = point[1] * s
+        x = dx + self.xc
+        y = dy + self.yc
+        x = np.round(x).astype(int)
+        y = np.round(y).astype(int)
 
-                CmReal fx[5] = {_fx[0], _fx[1], _fx[2], newFx3, _fx[4]};
+        R_squared = dx**2 + dy**2
+        return x, y, R_squared
 
-                CmReal dfdx[4] = {_dfdx[0], _dfdx[1], _dfdx[2], newFx3};
+    def pixel_to_vector(self, x, y):
+        ''' 
+        Go from pixel in image coordinates to vector in camera coordinates
+        '''
 
-                CmReal px, x=_initial_x;
+        #NOTE: model (x,y) is (height,width) so we swap
+        dx = x - self.xc
+        dy = y - self.yc
+        direction = np.array([0,0,0])
+        direction[0] = dx
+        direction[1] = dy
+        direction[2] = self.focalLengthPixels
+        
+        return direction
+    
+# Utility functions
+def vec3_normalise(point):
+    norm = np.linalg.norm(point)
+    if norm == 0: 
+       return point
+    return point / norm
 
-                do {
+#Evaluation of polynomials
+#cubic
+def eval_poly3(poly,x):
+    return ((poly[0]*x + poly[1])*x + poly[2])*x + poly[3]
 
-                               px = x;
-
-                               x -= eval_poly4(fx,x) / eval_poly3(dfdx,x);
-
-                } while (fabs(x - px) > 1e-3);
-
-                return x;
-
-}
-''' 
-'''
-bool OcamCalibCameraModel::vectorToPixel(
-
-                const CmPoint &point, CmReal& x, CmReal& y) const
-
-{
-
-                const CmReal forward[3] = {0,0,1};
-
-                CmReal r[3] = {point[0], point[1], point[2]};
-
-                vec3normalise(r);
-
-                CmReal alpha = acos(vec3dot(r,forward));
-
-                CmReal R = _alphaToR(alpha);
-
-                if (R < 0) {
-
-                               // Uh oh, undefined
-
-                               x = -1.0;
-
-                               y = -1.0;
-
-                               return false;
-
-                }
-
-                CmReal mag = sqrt(r[0]*r[0] + r[1]*r[1]);
-
-                if (mag != 0)
-
-                               mag = R / mag;
-
-                // NOTE: model (x,y) is (height,width) so we swap
-
-                CmReal px = r[1] * mag;
-
-                CmReal py = r[0] * mag;
-
-                y = _M[0]*px + _M[1]*py + _xc;
-
-                x = _M[2]*px + _M[3]*py + _yc;
-
-                return _validPixel(x, y, R*R);
-
-}
-'''
+#quartic
+def eval_poly4(poly, x):
+    return (((poly[0]*x + poly[1])*x + poly[2])*x + poly[3])*x + poly[4]

@@ -2,18 +2,16 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import numpy as np
-
 import os
 
-from field_mask import set_up_field_mask
-from run_field_mask import label_mask_from_robot_pose
-from rectilinear_camera_model_tools import RectilinearCameraModel
-from visualization_utilities import blend_color_and_image
-from transformation_utilities import set_up_camera_to_robot_transform
+from autolabel.camera_models import RectilinearCameraModel
+from autolabel.field_mask import set_up_field_mask, get_mask
+from autolabel.transformation_utilities import set_up_camera_to_robot_transform
+from autolabel.visualization_utilities import blend_color_and_image
 
 
 def update_and_draw_mask():
-    label_mask = label_mask_from_robot_pose(cam_model, polygon_field_mask, robot_rpy, robot_xyz,T_camera_to_robot,sampling_step)
+    label_mask = get_mask(cam_model, polygon_field_mask, robot_rpy, robot_xyz,T_camera_to_robot,sampling_step)
     #t_b = time.time()
     overlay_im = blend_color_and_image(camera_im,label_mask,color_codes = [[None,None,None],[0,0,255],[255,255,0]],alpha=0.85) 
     im_vis.set_data(overlay_im)
@@ -49,9 +47,7 @@ if __name__ == "__main__":
     camera_im = plt.imread(im_file)
 
     sampling_step = 8
-    calib_file = '/home/marianne/catkin_ws/src/vision-based-navigation-agri-fields/thorvald_data_extraction/camera_data_collection/realsense_model.xml'
-
-    #--- Set up autolabel
+    calib_file = 'data/realsense_model.xml'
 
     #Mask setup
     crop_duty_cycle = 0.49#0.55#0.65
@@ -62,14 +58,14 @@ if __name__ == "__main__":
     cam_model = RectilinearCameraModel(calib_file)
 
     #Camera extrinsics
-    camera_xyz = np.array([0, 0.033, 0.9])#np.array([0, 0.033, 1.1]) #zero y offset
-    camera_rpy = np.array([0.000, np.deg2rad(-22.15), 0.0])  #np.array([0.000, np.deg2rad(-22.15), 0.0]) #adjusted
+    camera_xyz = np.array([0, 0.033, 0.9])
+    camera_rpy = np.array([0.000, np.deg2rad(-22.15), 0.0])
     T_camera_to_robot = set_up_camera_to_robot_transform(rpy = camera_rpy, xyz = camera_xyz)
 
     #--- Make initial mask
     robot_rpy = [0,0,0]
     robot_xyz = [0,0,0]
-    label_mask = label_mask_from_robot_pose(cam_model, polygon_field_mask, robot_rpy, robot_xyz,T_camera_to_robot,sampling_step)
+    label_mask = get_mask(cam_model, polygon_field_mask, robot_rpy, robot_xyz,T_camera_to_robot,sampling_step)
     overlay_im = blend_color_and_image(camera_im,label_mask,color_codes = [[None,None,None],[0,0,255],[255,255,0]],alpha=0.85) 
 
     #--- Initialize figure
@@ -77,6 +73,7 @@ if __name__ == "__main__":
     plt.subplots_adjust(bottom=0.4)
     im_vis = plt.imshow(overlay_im)
     plt.axis('off')
+    plt.title('Click on the bars to alter the mask projection.')
 
     #--- Set up sliders and callbacks
     ax_yaw = plt.axes([0.2, 0.10, 0.7, 0.03])
