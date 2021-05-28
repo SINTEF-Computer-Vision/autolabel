@@ -71,7 +71,9 @@ overlay_im = blend_color_and_image(camera_im,
 # Plot
 plt.figure()
 plt.imshow(label_mask)
+plt.axis('off')
 plt.figure()
 plt.imshow(overlay_im)
+plt.axis('off')
 
 plt.show()
