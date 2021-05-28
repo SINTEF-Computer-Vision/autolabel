@@ -4,7 +4,7 @@
 #
 # To update an environment with changes in the yml file:
 #
-#   $ conda activate segnet
+#   $ conda activate autolabel
 #   $ conda env update -f conda_env.yml
 
 name: autolabel
@@ -15,7 +15,6 @@ channels:
   - intel
 
 dependencies:
-    # Basic Python packages
   - python=3
   - numpy
   - matplotlib
