@@ -26,11 +26,9 @@ Install dependencies in a conda environment with provided yml file (preferred):
 conda env create -f environments/conda_env.yml
 conda activate autolabel
 ```
-
-
 Or use your preferred method for installing python packages.
 
-### Run demo scripts
+### Demo
 
 Run demo.py
 ```
@@ -43,6 +41,7 @@ Run the interactive demo to play around with camera extrinsics and robot pose.
 ```
     python demo_interactive.py
 ```
+<img src="docs/interactive_example.png" width="480">
 
 ## Usage
 To use this in your own application, replace the hard-coded values in demo.py with your own data.
@@ -52,8 +51,8 @@ You need:
 * Images captured while driving along a crop row
 * For each image, robot position and angle compared to the crop row centre line. Alternatively, assume a straight drive and set this to zero
 
-## The paper
-This code was used to generate labels to train a convolutional neural network for crop row segmentation in our paper presented at ICRA 2021. The code for data recording and training the neural network is not included in this repository. Please see the full paper for more information about this method and its usage.
+## Publication
+This code was used to generate labels to train a convolutional neural network for crop row segmentation in our paper presented at ICRA in June 2021. The code for data recording and training the neural network is not included in this repository. Please see the full paper for more information about this method and its usage.
 
 If you find this useful, please cite:
 
