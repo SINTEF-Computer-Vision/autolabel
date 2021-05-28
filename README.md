@@ -1,12 +1,7 @@
 # Autolabel
-A tool for generating approximate labels for crop row segmentation by projecting a mask from field to image.
+A tool for generating approximate labels for crop row segmentation by projecting a mask from ground to image.
 
-<img src="docs/overview.jpg" width="480">
-
-## Functionality
-The segmentation mask is computed based on a simplified field geometry, camera calibration and robot position. The result is an approximate mask with fixed lane width and straight lines, as shown in the image below. 
-
-<img src="docs/example.jpg" width="480">
+<img src="docs/robot.jpg" width="480">
 
 ## Dependencies
   * python=3
@@ -17,27 +12,37 @@ The segmentation mask is computed based on a simplified field geometry, camera c
   * tqdm
   * xmltodict
   * opencv
-
-
+  
+  (to use provided environment)
+  * conda
+  ([More information about how to use conda environments](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html))
+  
 ## Getting started
-#Installation
+### Installation
 Clone repository and go to root directory
 
 Install dependencies in a conda environment with provided yml file (preferred):
-    conda env create -f environments/conda_env.yml
-    conda activate autolabel
+```
+conda env create -f environments/conda_env.yml
+conda activate autolabel
+```
 
-    ([More information about how to use conda environments](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html))
 
 Or use your preferred method for installing python packages.
 
-#Run demo scripts
+### Run demo scripts
 
-Run demo.py to produce the figure above
-    python demo.py
+Run demo.py
+```
+python demo.py
+```
+The demo code will produce a projected mask for an example image:
+<img src="docs/example.png" width="480">
 
 Run the interactive demo to play around with camera extrinsics and robot pose.
+```
     python demo_interactive.py
+```
 
 ## Usage
 To use this in your own application, replace the hard-coded values in demo.py with your own data.
@@ -47,9 +52,8 @@ You need:
 * Images captured while driving along a crop row
 * For each image, robot position and angle compared to the crop row centre line. Alternatively, assume a straight drive and set this to zero
 
-
 ## The paper
-This code was used to generate labels to train a convolutional neural network for crop row segmentation in our paper presented at ICRA 2021. The code for data recording and training the neural network is application specific, is not included in this repository. Please see the full paper for more information about this method and more information about the learning-based segmentation network.
+This code was used to generate labels to train a convolutional neural network for crop row segmentation in our paper presented at ICRA 2021. The code for data recording and training the neural network is not included in this repository. Please see the full paper for more information about this method and its usage.
 
 If you find this useful, please cite:
 
