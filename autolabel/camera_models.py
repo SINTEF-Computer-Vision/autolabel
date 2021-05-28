@@ -74,7 +74,7 @@ class OcamCalibCameraModel:
         if R <0 :
             x = -1.0
             y = -1.0
-            return false #??
+            return False
         #Scale to get ideal fisheye pixel coordinates:
         mag = np.sqrt(r[0]**2 + r[1]**2)
         if (mag != 0):

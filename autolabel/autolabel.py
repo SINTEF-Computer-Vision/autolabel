@@ -27,7 +27,7 @@ def get_mask(cam_model, polygon_field_mask, robot_rpy = [0,0,0], robot_xyz = [0,
 
     '''
     #Set up transforms
-    T_robot_to_world = set_up_robot_to_world_transform(rpy = [robot_rpy[0],robot_rpy[1],-robot_rpy[2]], xyz = robot_xyz) #compensate for sign error
+    T_robot_to_world = set_up_robot_to_world_transform(rpy = [robot_rpy[0],robot_rpy[1],-robot_rpy[2]], xyz = robot_xyz) 
     T_cam_to_world = camera_to_world_transform(T_camera_to_robot, T_robot_to_world)
     
     #Project mask
