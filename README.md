@@ -54,7 +54,9 @@ You need:
 ## Publication
 This code was used to generate labels to train a convolutional neural network for crop row segmentation in our paper presented at ICRA in June 2021. The code for data recording and training the neural network is not included in this repository. Please see the full paper for more information about this method and its usage.
 
-If you find this useful, please cite:
+A video summary of the paper can be found [on YouTube](https://www.youtube.com/watch?v=CkI3bfmEHMY).
+
+If you find this useful for your work, please cite the paper:
 
 ```
 @inproceedings{Bakken2021RobotSupervised,
@@ -64,3 +66,5 @@ If you find this useful, please cite:
     author = {Bakken, Marianne and Ponnambalam,Vignesh Raja and Moore,Richard J. D. and Gjevestad, Jon Glenn Omholt and From, Pål Johan}
 }
 ```
+
+A link to the dataset in the paper is coming soon.
